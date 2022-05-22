@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from core.libs.password import hash_password
+from core.miniframework_on_django.tools.password import hash_password
 from user.models import User
 
 
