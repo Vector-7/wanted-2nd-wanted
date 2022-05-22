@@ -1,6 +1,7 @@
 from access.utils.authenticates.signup import SignUpAuthenticateCodeSender, SignUpAuthenticateCodeChecker, \
     SignUpAuthenticateTokenGenerator
-from core.miniframework_on_django.manager_layer.manager import AuthenticationManager
+from core.miniframework_on_django.manager_layer.manager import AuthenticationManager, BaseManager
+from core.miniframework_on_django.manager_layer.manager_layer import FrontendManagerLayer
 from core.miniframework_on_django.manager_layer.plugins import AuthenticateCodePlugin
 
 

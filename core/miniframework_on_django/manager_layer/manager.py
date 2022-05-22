@@ -1,7 +1,7 @@
 from abc import ABCMeta
 from collections.abc import Callable
-from typing import Any, Dict
 
+from core.miniframework_on_django.manager_layer.manager_layer import BackendManagerLayer
 from core.miniframework_on_django.query_layer.access_query.authenticator import AuthenticateTokenGenerator
 
 
@@ -9,7 +9,9 @@ class BaseManager(metaclass=ABCMeta):
     pass
 
 
-class AuthenticationManager(BaseManager, metaclass=ABCMeta):
+class AuthenticationManager(BaseManager,
+                            BackendManagerLayer,
+                            metaclass=ABCMeta):
     """
     인증 매니저
 
