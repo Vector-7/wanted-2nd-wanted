@@ -1,4 +1,5 @@
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import PermissionsMixin
 from django.db import models
 
 from core.models import TimeStampedModel
@@ -7,7 +8,7 @@ from core.models import TimeStampedModel
 class ModelUserManager(BaseUserManager):
     use_in_migrations = True
 
-    def create_user(self, email: str, nickname: str,  password: str, level: str = 'client'):
+    def create_user(self, email: str, nickname: str, password: str, level: str = 'client'):
 
         if not email:
             raise ValueError('Email empty')
@@ -16,16 +17,22 @@ class ModelUserManager(BaseUserManager):
         if not password:
             raise ValueError('Password empty')
 
+        level_map = {
+            'admin': 0,
+            'company_client': 1,
+            'client': 2,
+        }
+
         user = self.model(
             email=self.normalize_email(email),
             nickname=nickname,
-            level=level
+            level=level_map[level],
         )
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, nickname, last_name, first_name, password):
+    def create_superuser(self, email, nickname, password):
         user = self.create_user(
             email=email,
             password=password,
@@ -38,8 +45,7 @@ class ModelUserManager(BaseUserManager):
         return user
 
 
-class User(AbstractBaseUser, TimeStampedModel):
-
+class User(AbstractBaseUser, TimeStampedModel, PermissionsMixin):
     objects = ModelUserManager()
 
     USER_LEVEL = [
@@ -74,3 +80,14 @@ class User(AbstractBaseUser, TimeStampedModel):
 
     class Meta:
         db_table = 'user'
+
+    @property
+    def is_staff(self):
+        return self.level == 0
+
+    def has_module_perms(self, app_label):
+        return self.level == 0
+
+    @property
+    def is_superuser(self):
+        return self.level == 0
