@@ -8,7 +8,11 @@ from core.models import TimeStampedModel
 class ModelUserManager(BaseUserManager):
     use_in_migrations = True
 
-    def create_user(self, email: str, nickname: str, password: str, level: str = 'client'):
+    def create_user(self,
+                    email: str,
+                    nickname: str,
+                    password: str,
+                    level: str = 'client'):
 
         if not email:
             raise ValueError('Email empty')
@@ -49,10 +53,16 @@ class User(AbstractBaseUser, TimeStampedModel, PermissionsMixin):
     objects = ModelUserManager()
 
     USER_LEVEL = [
-        ('client', 2),
-        ('company_client', 1),
-        ('admin', 0),
+        (2, 'client'),
+        (1, 'company_client'),
+        (0, 'admin'),
     ]
+
+    USER_LEVEL_MAP = {
+        'client': 2,
+        'company_client': 1,
+        'admin': 2,
+    }
 
     email = models.EmailField(
         verbose_name='고유 이메일 주소',
