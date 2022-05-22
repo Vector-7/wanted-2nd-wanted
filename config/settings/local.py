@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 import os
+from config.settings.base import *
 
 load_dotenv()
 DEBUG = True
