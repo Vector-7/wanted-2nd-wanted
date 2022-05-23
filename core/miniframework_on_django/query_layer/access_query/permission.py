@@ -8,7 +8,7 @@ class PermissionChecker(metaclass=ABCMeta):
         pass
 
 
-class PermissionSameUserChecker(metaclass=ABCMeta):
+class PermissionSameUserChecker:
     target_user: str
 
     def __init__(self, target_user):
