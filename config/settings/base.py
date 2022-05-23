@@ -20,6 +20,7 @@ CUSTOM_APPS = [
     'core',
     'user',
     'access',
+    'company',
 ]
 
 THIRDPARTY_MIDDLEWARE = [

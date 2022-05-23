@@ -67,8 +67,5 @@ class AuthenticationRemoteManager(BaseManager,
                                   level=level)
 
     def request_login(self, email, password):
-
         token = LoginManager().auth(email, email, password)
-
-        # 토큰 발행
         return token
