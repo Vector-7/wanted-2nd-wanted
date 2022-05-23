@@ -16,7 +16,6 @@ class CertificateView(APIView):
     (GET)   /api/auth/certificate   이메일 인증 요청
     (POST)  /api/auth/certificate   이메일 인증 번호 매칭 및 토큰 발행
     """
-
     def get(self, request: Request):
         """
         GET-param: email
@@ -65,7 +64,6 @@ class LoginView(APIView):
     """
     (POST)   /api/auth/login     로그인
     """
-
     def post(self, request):
         """
         post-param
