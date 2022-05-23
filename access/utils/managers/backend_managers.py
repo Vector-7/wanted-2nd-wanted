@@ -1,7 +1,7 @@
+from access.utils.authenticates.login import LoginTokenGenerator, check_login
 from access.utils.authenticates.signup import SignUpAuthenticateCodeSender, SignUpAuthenticateCodeChecker, \
     SignUpAuthenticateTokenGenerator
-from core.miniframework_on_django.manager_layer.manager import AuthenticationManager, BaseManager
-from core.miniframework_on_django.manager_layer.manager_layer import FrontendManagerLayer
+from core.miniframework_on_django.manager_layer.manager import AuthenticationManager
 from core.miniframework_on_django.manager_layer.plugins import AuthenticateCodePlugin
 
 
@@ -15,3 +15,8 @@ class SignUpAuthenticationManager(AuthenticationManager,
     checker = SignUpAuthenticateCodeChecker()
     check_auth = _pass
     token_generator = SignUpAuthenticateTokenGenerator()
+
+
+class LoginManager(AuthenticationManager):
+    check_auth = check_login
+    token_generator = LoginTokenGenerator()

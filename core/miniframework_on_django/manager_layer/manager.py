@@ -28,4 +28,4 @@ class AuthenticationManager(BaseManager,
         if self.check_auth(*args, **kwargs):
             return self.token_generator.generate(info_for_token)
         else:
-            return None
+            raise PermissionError('Auth Failed')

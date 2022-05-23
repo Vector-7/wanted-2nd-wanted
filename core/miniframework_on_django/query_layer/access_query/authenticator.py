@@ -1,4 +1,4 @@
-import datetime
+import time
 from abc import ABCMeta, abstractmethod
 
 from core.miniframework_on_django.system_layer.jwt.jwt import write_jwt
@@ -71,5 +71,5 @@ class AuthenticateTokenGenerator(metaclass=ABCMeta):
             app_name=self.app_name,
             issue=self.issue,
             audience=audience,
-            expire_len=datetime.timedelta(minutes=self.expire_len)
+            expire_len=self.expire_len
         )

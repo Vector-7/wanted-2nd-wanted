@@ -22,6 +22,11 @@ CUSTOM_APPS = [
     'access',
 ]
 
+THIRDPARTY_MIDDLEWARE = [
+    'drf_yasg',
+    'rest_framework',
+]
+
 INSTALLED_APPS = [
                      'django.contrib.admin',
                      'django.contrib.auth',
@@ -29,7 +34,7 @@ INSTALLED_APPS = [
                      'django.contrib.sessions',
                      'django.contrib.messages',
                      'django.contrib.staticfiles',
-                 ] + CUSTOM_APPS
+                 ] + CUSTOM_APPS + THIRDPARTY_MIDDLEWARE
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -93,7 +98,6 @@ USE_I18N = True
 
 USE_TZ = False
 
-##CORS
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 
@@ -117,3 +121,8 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_SENDER_PASSWD')
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# FOR SWAGGER
+SWAGGER_SETTINGS = {
+    'USE_SESSION_AUTH': False,
+}
