@@ -16,6 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
     def validate_nickname(self, nickname):
         if not (3 < len(nickname) < 33):
             raise serializers.ValidationError('nickname matching failed')
+        return nickname
 
     def create(self, validated_data):
         # password 암호화
