@@ -15,21 +15,21 @@ class SignUpAuthenticateCodeSender(AuthenticateCodeSender):
     def generate_code(self, *args, **kwargs) -> str:
         return str(random.randint(100000, 999999))
 
-    def save_code(self, email, auth_code):
-        key = f'email_certificate:{email}'
+    def save_code(self, audience, auth_code):
+        key = f'email_certificate:{audience}'
         value = {
             'code': auth_code
         }
         cache.set(key, value, self.get_ttl_second())
 
-    def send_code(self, email, auth_code):
+    def send_code(self, audience, auth_code):
         """
         이메일로 코드 코드 전송
         """
         email = EmailMessage(
             'Company Searcher 인증 코드 입니다.',
             f'Code: {auth_code}',
-            to=[email]
+            to=[audience]
         )
         email.send()
 

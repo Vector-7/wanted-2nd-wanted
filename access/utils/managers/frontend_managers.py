@@ -7,7 +7,7 @@ from core.miniframework_on_django.manager_layer.manager import BaseManager
 from core.miniframework_on_django.manager_layer.manager_layer import FrontendManagerLayer
 from core.miniframework_on_django.query_layer.access_query.permission import PermissionList, PermissionSameUserChecker
 from core.miniframework_on_django.system_layer.jwt.jwt import read_jwt
-from user.utils.data_queries.user import UserQuery
+from user.utils.queries import UserQuery
 
 
 class AuthenticationRemoteManager(BaseManager,
@@ -42,7 +42,7 @@ class AuthenticationRemoteManager(BaseManager,
     def request_sign_up(self, nickname, email, password, level, access_token):
 
         """
-        Permission Check
+        회원 가입
 
         디코딩 실패: jwt.exceptions.DecodeError
         권한이 안됨: PermissionError

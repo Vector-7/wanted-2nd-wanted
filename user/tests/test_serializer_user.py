@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.test import APITestCase
 
-from user.utils.data_queries.user import UserQuery
+from user.utils.queries import UserQuery
 
 
 class SerializerUserTest(APITestCase):

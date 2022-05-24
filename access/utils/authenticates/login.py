@@ -1,6 +1,6 @@
 from core.miniframework_on_django.query_layer.access_query.authenticator import AuthenticateTokenGenerator
 from core.miniframework_on_django.tools.password import match_password
-from user.utils.data_queries.user import UserQuery
+from user.utils.queries import UserQuery
 
 
 def check_login(_, email, password):

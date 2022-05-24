@@ -1,4 +1,3 @@
-import time
 from abc import ABCMeta, abstractmethod
 
 from core.miniframework_on_django.system_layer.jwt.jwt import write_jwt
@@ -43,14 +42,14 @@ class AuthenticateCodeSender(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def save_code(self, email, auth_code):
+    def save_code(self, audience, auth_code):
         """
         특정 DB에 저장
         """
         pass
 
     @abstractmethod
-    def send_code(self, email, auth_code):
+    def send_code(self, audience, auth_code):
         """
         인증 코드를 발송한다.
         """

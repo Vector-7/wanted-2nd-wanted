@@ -1,5 +1,4 @@
 import os
-
 import jwt
 import time
 import datetime

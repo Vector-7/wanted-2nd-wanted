@@ -28,4 +28,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path(f'{URI}/auth/', include('access.urls')),
     path(f'{URI}/users', include('user.urls')),
+    path(f'{URI}/companies', include('company.urls')),
 ] + swagger_url
