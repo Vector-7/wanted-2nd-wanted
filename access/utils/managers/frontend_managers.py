@@ -1,13 +1,18 @@
 from typing import Optional
 
 from access.utils.managers.backend_managers import SignUpAuthenticationManager, LoginManager
-from access.utils.permissions import SignUpPermissionChecker
 from core.miniframework_on_django.exc import TokenExpiredError
 from core.miniframework_on_django.manager_layer.manager import BaseManager
 from core.miniframework_on_django.manager_layer.manager_layer import FrontendManagerLayer
-from core.miniframework_on_django.query_layer.access_query.permission import PermissionList, PermissionSameUserChecker
-from core.miniframework_on_django.system_layer.jwt.jwt import read_jwt
 from user.utils.queries import UserQuery
+from core.miniframework_on_django.query_layer.access_query.permission \
+    import PermissionSameUserChecker as SameEmailOnly
+from core.miniframework_on_django.system_layer.jwt.jwt import read_jwt
+from access.utils.permissions import (
+    SignUpPermissionChecker as SignUpOnly,
+    LoginPermissionChecker as LoginOnly,
+    AdminPermissionChecker as AdminOnly,
+)
 
 
 class AuthenticationRemoteManager(BaseManager,
@@ -50,15 +55,29 @@ class AuthenticationRemoteManager(BaseManager,
         유저 생성 실패: sereializers.ValidationError
         """
 
-        # 권한 체크
-        PermissionList(
-            req_permissions=[
-                SignUpPermissionChecker(),
-                PermissionSameUserChecker(target_user=email),
-            ],
-            decode_token_func=read_jwt,
-            app_name='wanted-company-searcher',
-        )(access_token)
+        # 토큰 데이터 추출
+        issue, current_email = read_jwt(access_token, 'wanted-company-searcher')
+        user_level: Optional[str] = None
+        try:
+            user = User.objects.get(email=current_email)
+            user_level = USER_LEVEL_MAP[user.level]
+        except Exception:
+            pass
+
+        """
+        권한 체크
+        
+        1.일반 유저 회원 가입일 경우
+            1.1. 회원 가입 전용 토큰
+                and
+            1.2. 자신의 이메일로 회원 가입
+        2. 단 Admin일 경우 로그인 상태의 토큰이라면
+            다른 사람 계정으로 회원 가입 가능
+        """
+        is_allowed = (SignUpOnly(issue) & SameEmailOnly(current_email, email)) | \
+                     (AdminOnly(user_level) & LoginOnly(issue))
+        if not bool(is_allowed):
+            raise PermissionError('Permission Failed')
 
         # 유저 생성 및 보내기
         return UserQuery().create(nickname=nickname,

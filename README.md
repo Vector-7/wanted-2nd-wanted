@@ -53,6 +53,20 @@
 * 회사 검색 기능 추가
   * 복수개의 Tag 단위로 검색해야 합니다.
 
+
+## 개인 목표
+
+#### 최대한 기술을 긁어모아서 제대로 된 서버 구현하기
+* 단순 구현이 아닌 사용자 인증, 캐싱 같은 될 수 있는 기술들을 최대한 모아서
+* 안전하고 견고한 어플리케이션 구현하기
+
+#### Frontend(ReactJS) 까지 추가해서 완벽한 Web Applicaion 배포
+* Frontend까지 구현해서 완전한 Web개발
+
+#### DJango 기반의 자체 Architecture/Framework 설계 및 구현과 그 위에서 구현하기
+* 객체지향적인 설계가 목표
+* 개인 프로젝트로 Flask/FastAPI 기반의 아키텍쳐 솔루션 패키지인 flanaria가 진행 중이며 해당 프로젝트는 flanaria 프로젝트의 초석이 될 예정
+
 ## Directory Structure
 ```tree
 ├─access
@@ -115,7 +129,7 @@ In-Memory Database, 즉 캐시 시스템 입니다. 해당 시스템의 사용 �
 
 <details>
 <summary>UML 보기</summary>
-<div markdown="1">
+<div>
 
 ![](readme-assets/uml.png)
 

@@ -1,19 +1,52 @@
 from abc import ABCMeta, abstractmethod
-from typing import Any, Callable, Optional, Iterable
+from typing import Any, Optional
 
 
 class PermissionChecker(metaclass=ABCMeta):
     """
     사용자 권한을 체크하는 데 사용된다.
     """
+
+    checked: Optional[bool] = None
+    data: Any = None
+
+    def __init__(self, data: Any):
+        self.data = data
+
+    def __bool__(self):
+        if self.checked is None:
+            raise TypeError('This instance is not checked')
+        return self.checked
+
     @abstractmethod
-    def check(self, user) -> bool:
+    def check(self) -> bool:
         """
         사용자 권한 체크
-        
-        :param user: 검수 대상 클라이언트
         """
         pass
+
+    def __and__(self, other):
+        if self.checked is None:
+            self.check()
+        if not self.checked:
+            other.checked = False
+        else:
+            if other.checked is None:
+                other.check()
+            other.checked &= self.checked
+
+        return other
+
+    def __or__(self, other):
+        if self.checked is None:
+            self.check()
+        if self.checked:
+            other.checked = True
+        else:
+            if other.checked is None:
+                other.check()
+            other.checked |= self.checked
+        return other
 
 
 class PermissionSameUserChecker(PermissionChecker):
@@ -22,13 +55,14 @@ class PermissionSameUserChecker(PermissionChecker):
 
     예를 들어 회사를 삭제할 경우 해당 회사를 만든 사람만이 삭제할 수 있어야 한다.
     """
-    target_user: str
+    target_user: Optional[str] = None
 
-    def __init__(self, target_user):
+    def __init__(self, data, target_user=None):
+        super().__init__(data)
         self.target_user = target_user
 
-    def check(self, user):
-        return user == self.target_user
+    def check(self):
+        self.checked = self.data == self.target_user
 
 
 class PermissionLevelChecker(PermissionChecker, metaclass=ABCMeta):
@@ -37,8 +71,11 @@ class PermissionLevelChecker(PermissionChecker, metaclass=ABCMeta):
     """
     level: Any
 
-    def check(self, level: Any) -> bool:
-        return level == self.level
+    def __init__(self, data):
+        super().__init__(data)
+
+    def check(self) -> bool:
+        self.checked = self.data == self.level
 
 
 class PermissionIssueChecker(PermissionChecker, metaclass=ABCMeta):
@@ -49,8 +86,11 @@ class PermissionIssueChecker(PermissionChecker, metaclass=ABCMeta):
     """
     issue: Any
 
-    def check(self, issue: Any) -> bool:
-        return issue == self.issue
+    def __init__(self, data):
+        super().__init__(data)
+
+    def check(self) -> bool:
+        self.checked = self.data == self.issue
 
 
 class PermissionAllAllowed(PermissionChecker):
@@ -58,52 +98,8 @@ class PermissionAllAllowed(PermissionChecker):
     모든 조건 허용
     """
 
-    def check(self, _) -> bool:
-        return True
+    def __init__(self, data):
+        super().__init__(data)
 
-
-class PermissionList:
-    """
-    다수의 Permission 조건을 처리한느데 사용된다.
-
-    해당 클래스는 컴포지션을 목적으로 한 클래스로 상속 보다는 변수로 사용하는 것을 권장한다.
-    
-    (Not Implemented) 해당 클래스는 Permission에 대흔 OR연산만 되고 AND 연산이 안되는 상황이다.
-    클래스를 분할 하거나, PermssionManager를 따로 만들 예정
-
-    :variable required_permissions: Permission 모음
-    :variable decode_token: token을 디코딩 할 때 사용하는 함수
-    :variable get_user_level: User의 수준을 확인할 때 사용되는 함수
-    :variable app_name: jwt 토큰에 사용
-    """
-    required_permissions: Iterable[PermissionChecker]
-    decode_token: Callable
-    get_user_level: Optional[Callable]
-    app_name: str
-
-    def __init__(self,
-                 req_permissions,
-                 decode_token_func,
-                 app_name,
-                 get_user_level_func=None):
-        self.required_permissions = req_permissions
-        self.decode_token = decode_token_func
-        self.get_user_level = get_user_level_func
-        self.app_name = app_name
-
-    def __call__(self, token):
-        issue, user = self.decode_token(token, self.app_name)
-
-        user_level = self.get_user_level(user) if self.get_user_level \
-            else None
-
-        for permission in self.required_permissions:
-            checked_val = None
-            if issubclass(type(permission), PermissionLevelChecker):
-                checked_val = user_level
-            elif issubclass(type(permission), PermissionIssueChecker):
-                checked_val = issue
-            else:
-                checked_val = user
-            if not permission.check(checked_val):
-                raise PermissionError('User Permission Failed')
+    def check(self) -> bool:
+        self.checked = True

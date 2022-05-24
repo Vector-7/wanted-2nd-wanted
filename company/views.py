@@ -1,11 +1,13 @@
 from ast import literal_eval
 
+import django.db.utils
 import jwt.exceptions
 from rest_framework import status, serializers
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from company.utils.managers import CompanyManager
+from core.miniframework_on_django.exc import TokenExpiredError
 
 
 class CompanyCreateView(APIView):
@@ -26,10 +28,13 @@ class CompanyCreateView(APIView):
         except KeyError:
             return Response({'error': '접근할 수 없는 API 입니다.'},
                             status.HTTP_403_FORBIDDEN)
-        except (PermissionError, jwt.exceptions.DecodeError):
-            return Response({'error': '유효한 token이 아닙니다.'},
+        except TokenExpiredError:
+            return Response({'error': '토큰이 만료되었습니다.'},
                             status.HTTP_403_FORBIDDEN)
-        except serializers.ValidationError as e:
+        except (PermissionError, jwt.exceptions.DecodeError):
+            return Response({'error': '유효한 토큰이 아닙니다.'},
+                            status.HTTP_403_FORBIDDEN)
+        except (serializers.ValidationError, django.db.utils.IntegrityError) as e:
             return Response(str(e),
                             status.HTTP_400_BAD_REQUEST)
         except Exception as e:

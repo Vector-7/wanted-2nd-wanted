@@ -3,6 +3,8 @@ import jwt
 import time
 import datetime
 
+from core.miniframework_on_django.exc import TokenExpiredError
+
 JWT_KEY = os.environ.get('JWT_KEY')
 JWT_ALGORITHM = os.environ.get('JWT_ALGORITHM')
 DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
@@ -33,7 +35,7 @@ def read_jwt(jwt_token: str, target_app_name: str):
 
     # 만료 확인
     if time.time() > expired_date:
-        raise PermissionError("token expired")
+        raise TokenExpiredError("token expired")
     if app_name != target_app_name:
         raise PermissionError("app name is not equal")
 
