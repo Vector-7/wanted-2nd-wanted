@@ -22,22 +22,21 @@ class CompanyContents(models.Model):
 
 class CompanyName(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
-    name = models.CharField(max_length=100, null=False, blank=False, unique=True)
+    language = models.CharField(max_length=10, null=False, blank=False)
+    name = models.CharField(max_length=100, null=False, blank=False)
 
     class Meta:
         db_table = 'company_name'
-
-
-class CompanyNameLanguage(models.Model):
-    company_name = models.ForeignKey(CompanyName, on_delete=models.CASCADE)
-    language = models.CharField(max_length=10, null=False, blank=False)
-
-    class Meta:
-        db_table = 'company_name_language'
+        constraints = [
+            models.UniqueConstraint(
+                fields=('language', 'name'),
+                name='company_language_unique'
+            )
+        ]
 
 
 class CompanyTag(models.Model):
-    company = models.OneToOneField(Company, on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
     language = models.CharField(max_length=10, null=False, blank=False)
     name = models.CharField(max_length=100, null=False, blank=False)
 
@@ -46,7 +45,6 @@ class CompanyTag(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=('company', 'language', 'name'),
-                name='unique tag',
+                name='company_tag_unique',
             ),
         ]
-
