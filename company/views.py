@@ -83,14 +83,12 @@ class CompanyView(APIView):
         except (PermissionError, jwt.exceptions.DecodeError):
             return Response({'error': '유효한 토큰이 아닙니다.'}, status.HTTP_403_FORBIDDEN)
         except ValueError as e:
-            print(e)
             return Response({'error': '수정하고자 하는 회사가 없습니다.'},
                             status.HTTP_404_NOT_FOUND)
         except (serializers.ValidationError, django.db.utils.IntegrityError) as e:
             return Response(str(e),
                             status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            print(e)
             return Response({'error': 'server error'},
                             status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(res, status.HTTP_200_OK)
