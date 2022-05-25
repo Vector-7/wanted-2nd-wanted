@@ -78,5 +78,10 @@ class TestCompnayRead(APITestCase):
                 )
 
     def test_search_by_only_contain_word(self):
-        self.client.get('/api/search/companies', data={'query': '링크'},
+        res = self.client.get('/api/search/companies', data={'query': '링크'},
                         **{'HTTP_x-wanted-language': 'ko'})
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertCountEqual(res.data, [
+            {"company_name": "주식회사 링크드코리아"},
+            {"company_name": "스피링크"},
+        ])

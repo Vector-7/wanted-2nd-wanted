@@ -55,11 +55,11 @@ class CompanyManager(CRUDManager):
         """
         return self._read(company_name=company_name, lang=lang)
 
-    def search_company_by_contain_word(self, tags, lang):
+    def search_company_by_contain_word(self, word, lang):
         """
         연관검색어를 이용한 검색
 
         Not Implemented
         """
-        return self._search(tags=tags,
+        return self._search(word=word,
                             lang=lang)

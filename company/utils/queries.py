@@ -5,7 +5,10 @@ from django.db import transaction
 from company.models import Company, CompanyName, CompanyTag
 from company.serializers import CompanyNameSerializer, CompanyTagSerializer
 from core.miniframework_on_django.query_layer.data_query.query_cruds import QueryCRUDS
-from core.miniframework_on_django.query_layer.data_query.query_methods import QueryReader, QueryCreator
+from core.miniframework_on_django.query_layer.data_query.query_methods import (
+    QueryReader,
+    QueryCreator,
+    QuerySearcher)
 from user.models import User
 
 
@@ -31,7 +34,7 @@ class CompanyQueryReader(QueryReader):
             companies = CompanyName.objects \
                 .filter(company__id__in=company_ids) \
                 .filter(language=lang).values('company', 'name')
-            
+
             # 정보 없음
             if len(companies) == 0:
                 return None
@@ -144,6 +147,14 @@ class CompanyQueryCreator(QueryCreator):
         return res
 
 
+class CompanyQuerySearcher(QuerySearcher):
+    def __call__(self, word, lang):
+        company_names = CompanyName.objects.filter(name__contains=word) \
+            .filter(language=lang).values('name')
+        return [{'company_name': company_name['name']} for company_name in company_names]
+
+
 class CompanyQuery(QueryCRUDS):
     reader = CompanyQueryReader()
     creator = CompanyQueryCreator()
+    searcher = CompanyQuerySearcher()

@@ -18,7 +18,7 @@ class CompanyCreateView(APIView):
     def post(self, request):
         req_data = literal_eval(request.body.decode('utf-8'))
         try:
-            res = CompanyManager()  \
+            res = CompanyManager() \
                 .create_company(**req_data,
                                 lang=request.headers['X-Wanted-Language'],
                                 access_token=request.headers['Access'])
@@ -46,9 +46,10 @@ class CompanyView(APIView):
     (POST)  /api/companies/<company_name:str>   회사 정보 업데이트 (Not Implemented)
     (DELETE)/api/companies/<company_name:str>   회사 삭제 (Not Implemented)
     """
+
     def get(self, request, company_name):
         try:
-            res = CompanyManager()  \
+            res = CompanyManager() \
                 .get_company_info(company_name=company_name,
                                   lang=request.headers['X-Wanted-Language'])
         except KeyError:
@@ -68,15 +69,17 @@ class CompanySearchView(APIView):
     """
     (GET)   /api/search/companies   검색
     """
+
     def get(self, request):
         query = {
             'word': request.GET.get('query', None),
             'tags': request.GET.get('tags', ''),
         }
         try:
-            res = CompanyManager()\
-                .search_company_by_contain_word(**query,
-                                lang=request.headers['X-Wanted-Language'])
+            res = CompanyManager() \
+                .search_company_by_contain_word(
+                    word=query['word'],
+                lang=request.headers['X-Wanted-Language'])
         except KeyError:
             return Response({'error': '언어가 설정되지 않았습니다.'},
                             status.HTTP_400_BAD_REQUEST)
@@ -84,4 +87,3 @@ class CompanySearchView(APIView):
             return Response({'error': 'server error'},
                             status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(res, status.HTTP_200_OK)
-
