@@ -100,3 +100,6 @@ class CompanyManager(CRUDManager):
                       user_level=user_lv,
                       removed_company=company_name,
                       lang=lang)
+
+    def update_company(self, company_name, lang, access_token, *args, **kwargs):
+        raise NotImplemented()

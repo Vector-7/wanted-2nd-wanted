@@ -12,6 +12,14 @@ from core.miniframework_on_django.query_layer.data_query.query_methods import (
     QuerySearcher,
     QueryDestroyer
 )
+from access.utils.permissions import (
+    CompanyClientPermissionChecker as CompanyOnly,
+    LoginPermissionChecker as LoginOnly,
+    AdminPermissionChecker as AdminOnly,
+    USER_LEVEL_MAP
+)
+from core.miniframework_on_django.query_layer.access_query.permission import \
+    PermissionSameUserChecker as SameUserOnly
 from user.models import User
 
 
@@ -179,8 +187,15 @@ class CompanyQueryDestoryer(QueryDestroyer):
         except CompanyName.DoesNotExist:
             raise ValueError('No Compnay searched')
 
-        # 자신이 만든 회사여야 한다
-        if user_email != company_user_email:
+        """
+        Admin은 다른 사람의 회사를 삭제할 수 있지만
+        CompanyClient는 자신이 만든 회사만 삭제할 수 있다.
+        """
+        is_available =              \
+            AdminOnly(user_level) | \
+            (CompanyOnly(user_level) & SameUserOnly(user_email, company_user_email))
+
+        if not bool(is_available):
             raise PermissionError('You Cannot remove this company')
 
         # 회사 삭제

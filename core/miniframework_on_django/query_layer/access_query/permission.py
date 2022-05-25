@@ -18,13 +18,6 @@ class PermissionChecker(metaclass=ABCMeta):
             raise TypeError('This instance is not checked')
         return self.checked
 
-    @abstractmethod
-    def check(self) -> bool:
-        """
-        사용자 권한 체크
-        """
-        pass
-
     def __and__(self, other):
         if self.checked is None:
             self.check()
@@ -47,6 +40,13 @@ class PermissionChecker(metaclass=ABCMeta):
                 other.check()
             other.checked |= self.checked
         return other
+
+    @abstractmethod
+    def check(self) -> bool:
+        """
+        사용자 권한 체크
+        """
+        pass
 
 
 class PermissionSameUserChecker(PermissionChecker):
