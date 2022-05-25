@@ -44,7 +44,7 @@ class CompanyView(APIView):
     """
     (GET)   /api/companies/<company_name:str>   회사 검색
     (POST)  /api/companies/<company_name:str>   회사 정보 업데이트 (Not Implemented)
-    (DELETE)/api/companies/<company_name:str>   회사 삭제 (Not Implemented)
+    (DELETE)/api/companies/<company_name:str>   회사 삭제
     """
 
     def get(self, request, company_name):
@@ -64,6 +64,28 @@ class CompanyView(APIView):
                             status.HTTP_404_NOT_FOUND)
         return Response(res, status.HTTP_200_OK)
 
+    def delete(self, request, company_name):
+        try:
+            CompanyManager() \
+                .remove_company(company_name=company_name,
+                                lang=request.headers['X-Wanted-Language'],
+                                access_token=request.headers['Access'])
+        except KeyError:
+            return Response({'error': '접근할 수 없는 API 입니다.'},
+                            status.HTTP_403_FORBIDDEN)
+        except TokenExpiredError:
+            return Response({'error': '토큰이 만료되었습니다.'},
+                            status.HTTP_403_FORBIDDEN)
+        except (PermissionError, jwt.exceptions.DecodeError):
+            return Response({'error': '유효한 토큰이 아닙니다.'}, status.HTTP_403_FORBIDDEN)
+        except ValueError:
+            return Response({'error': '삭제하고자 하는 회사가 없습니다.'},
+                            status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': 'server error'},
+                            status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class CompanySearchView(APIView):
     """
@@ -78,7 +100,7 @@ class CompanySearchView(APIView):
         try:
             res = CompanyManager() \
                 .search_company_by_contain_word(
-                    word=query['word'],
+                word=query['word'],
                 lang=request.headers['X-Wanted-Language'])
         except KeyError:
             return Response({'error': '언어가 설정되지 않았습니다.'},

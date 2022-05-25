@@ -1,6 +1,7 @@
 from typing import Dict, Optional, List
 
 from django.db import transaction
+from django.db.models import Q
 
 from company.models import Company, CompanyName, CompanyTag
 from company.serializers import CompanyNameSerializer, CompanyTagSerializer
@@ -8,11 +9,14 @@ from core.miniframework_on_django.query_layer.data_query.query_cruds import Quer
 from core.miniframework_on_django.query_layer.data_query.query_methods import (
     QueryReader,
     QueryCreator,
-    QuerySearcher)
+    QuerySearcher,
+    QueryDestroyer
+)
 from user.models import User
 
 
 class CompanyQueryReader(QueryReader):
+    # 회사 정보 읽기
 
     def __call__(self,
                  company_name,
@@ -51,6 +55,7 @@ class CompanyQueryReader(QueryReader):
 
 
 class CompanyQueryCreator(QueryCreator):
+    # 회사 생성
 
     @transaction.atomic()  # 트랜잭션 적용
     def __call__(self,
@@ -148,13 +153,42 @@ class CompanyQueryCreator(QueryCreator):
 
 
 class CompanyQuerySearcher(QuerySearcher):
+    # 회사 검색
     def __call__(self, word, lang):
         company_names = CompanyName.objects.filter(name__contains=word) \
             .filter(language=lang).values('name')
         return [{'company_name': company_name['name']} for company_name in company_names]
 
 
+class CompanyQueryDestoryer(QueryDestroyer):
+    def __call__(self,
+                 user_email,
+                 user_level,
+                 removed_company,
+                 lang):
+
+        """
+        삭제할 회사 검색
+        이름 and 언어로 검색한다.
+        이러면 단 한개의 회사만 검색된다.
+        """
+        q = Q(name=removed_company) & Q(language=lang)
+        try:
+            company = CompanyName.objects.get(q).company
+            company_user_email = company.user.email
+        except CompanyName.DoesNotExist:
+            raise ValueError('No Compnay searched')
+
+        # 자신이 만든 회사여야 한다
+        if user_email != company_user_email:
+            raise PermissionError('You Cannot remove this company')
+
+        # 회사 삭제
+        Company.objects.get(id=company.id)
+
+
 class CompanyQuery(QueryCRUDS):
     reader = CompanyQueryReader()
     creator = CompanyQueryCreator()
     searcher = CompanyQuerySearcher()
+    destroyer = CompanyQueryDestoryer()
