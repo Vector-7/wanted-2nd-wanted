@@ -66,19 +66,16 @@ class CompanyView(APIView):
 
 class CompanySearchView(APIView):
     """
-    (GET)   /api/companies/search   검색
+    (GET)   /api/search/companies   검색
     """
     def get(self, request):
-        """
-        아직 완성 X
-        """
         query = {
             'word': request.GET.get('query', None),
             'tags': request.GET.get('tags', ''),
         }
         try:
             res = CompanyManager()\
-                .search_company(**query,
+                .search_company_by_contain_word(**query,
                                 lang=request.headers['X-Wanted-Language'])
         except KeyError:
             return Response({'error': '언어가 설정되지 않았습니다.'},
@@ -86,5 +83,5 @@ class CompanySearchView(APIView):
         except Exception as e:
             return Response({'error': 'server error'},
                             status.HTTP_500_INTERNAL_SERVER_ERROR)
-        return Response(res, status.HTTP_201_CREATED)
+        return Response(res, status.HTTP_200_OK)
 

@@ -5,6 +5,8 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework import permissions
 
+from company.views import CompanySearchView
+
 URI = 'api'
 
 
@@ -29,4 +31,5 @@ urlpatterns = [
     path(f'{URI}/auth/', include('access.urls')),
     path(f'{URI}/users', include('user.urls')),
     path(f'{URI}/companies', include('company.urls')),
+    path(f'{URI}/search', include('search.urls')),
 ] + swagger_url
