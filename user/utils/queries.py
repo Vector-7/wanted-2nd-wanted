@@ -1,7 +1,11 @@
 from typing import Optional
 
 from core.miniframework_on_django.query_layer.data_query.query_cruds import QueryCRUDS
-from core.miniframework_on_django.query_layer.data_query.query_methods import QueryReader, QueryCreator
+from core.miniframework_on_django.query_layer.data_query.query_methods import (
+    QueryReader,
+    QueryCreator,
+    QueryDestroyer,
+)
 from user.models import User
 from user.serializers import UserSerializer
 
@@ -42,6 +46,19 @@ class UserQueryCreator(QueryCreator):
         return data
 
 
+class UserQueryDestroyer(QueryDestroyer):
+    def __call__(self,
+                 user_name: Optional[str] = None,
+                 email: Optional[str] = None):
+        if user_name:
+            User.objects.get(name=user_name).delete()
+        elif email:
+            User.objects.get(email=email).delete()
+        else:
+            raise ValueError('No Data Selected')
+
+
 class UserQuery(QueryCRUDS):
     reader = UserQueryReader()
     creator = UserQueryCreator()
+    destroyer = UserQueryDestroyer()
