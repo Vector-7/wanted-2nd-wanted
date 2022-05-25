@@ -15,8 +15,9 @@ from core.miniframework_on_django.system_layer.jwt.jwt import read_jwt
 from access.utils.permissions import (
     SignUpPermissionChecker as SignUpOnly,
     LoginPermissionChecker as LoginOnly,
-    AdminPermissionChecker as AdminOnly,
+    AdminPermissionChecker as AdminOnly, USER_LEVEL_MAP,
 )
+from user.models import User
 
 
 class AuthenticationRemoteManager(BaseManager,

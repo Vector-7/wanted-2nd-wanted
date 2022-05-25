@@ -45,7 +45,7 @@ class CompanyCreateView(APIView):
 class CompanyView(APIView):
     """
     (GET)   /api/companies/<company_name:str>   회사 검색
-    (POST)  /api/companies/<company_name:str>   회사 정보 업데이트 (Not Implemented)
+    (POST)  /api/companies/<company_name:str>   회사 정보 업데이트
     (DELETE)/api/companies/<company_name:str>   회사 삭제
     """
 
@@ -64,6 +64,35 @@ class CompanyView(APIView):
         if not res:
             return Response({'error': '해당 회사를 찾을 수 없습니다.'},
                             status.HTTP_404_NOT_FOUND)
+        return Response(res, status.HTTP_200_OK)
+
+    def patch(self, request, company_name):
+        try:
+            req_data = literal_eval(request.body.decode('utf-8'))
+            res = CompanyManager() \
+                .update_company(**req_data,
+                                target_company=company_name,
+                                lang=request.headers['X-Wanted-Language'],
+                                access_token=request.headers['Access'])
+        except KeyError:
+            return Response({'error': '접근할 수 없는 API 입니다.'},
+                            status.HTTP_403_FORBIDDEN)
+        except TokenExpiredError:
+            return Response({'error': '토큰이 만료되었습니다.'},
+                            status.HTTP_403_FORBIDDEN)
+        except (PermissionError, jwt.exceptions.DecodeError):
+            return Response({'error': '유효한 토큰이 아닙니다.'}, status.HTTP_403_FORBIDDEN)
+        except ValueError as e:
+            print(e)
+            return Response({'error': '수정하고자 하는 회사가 없습니다.'},
+                            status.HTTP_404_NOT_FOUND)
+        except (serializers.ValidationError, django.db.utils.IntegrityError) as e:
+            return Response(str(e),
+                            status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(e)
+            return Response({'error': 'server error'},
+                            status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(res, status.HTTP_200_OK)
 
     def delete(self, request, company_name):

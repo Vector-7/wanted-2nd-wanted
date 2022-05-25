@@ -10,7 +10,7 @@ from core.miniframework_on_django.query_layer.data_query.query_methods import (
     QueryReader,
     QueryCreator,
     QuerySearcher,
-    QueryDestroyer
+    QueryDestroyer, QueryUpdator
 )
 from access.utils.permissions import (
     CompanyClientPermissionChecker as CompanyOnly,
@@ -60,6 +60,109 @@ class CompanyQueryReader(QueryReader):
         return res
 
 
+class CompanyQueryUpdator(QueryUpdator):
+
+    @transaction.atomic()
+    def __call__(self,
+                 modified_company_names,
+                 modified_company_tags,
+                 lang,
+                 target_company_name):
+
+        # 회사 검색
+        global res
+        q = Q(name=target_company_name) & Q(language=lang)
+        try:
+            company = CompanyName.objects.get(q).company
+            company_id = company.id
+        except CompanyName.DoesNotExist:
+            raise ValueError('No Compnay searched')
+        # 이름 변경
+        company_names: List[CompanyName] = CompanyName.objects.filter(company=company_id)
+        lang_map: Dict[str, CompanyName] = {cn.language: cn for cn in company_names}
+
+        for k, name in modified_company_names.items():
+            # 이름 수정
+            if k in lang_map:
+                if lang_map[k].name != name:
+                    # 이름이 다르면 수정
+                    lang_map[k].name = name
+                    lang_map[k].save()
+                    # 결과 데이터 적기
+                del lang_map[k]
+            else:
+                # 없음 -> 새로 생성
+                new_company_name = \
+                    CompanyName(company=company, name=name, language=k)
+                new_company_name.save()
+
+        # lang_map에 남아있는 데이터는 전부 삭제 대상이다.
+        if len(deleted := list(lang_map.keys())) > 0:
+            CompanyName.objects.filter(language__in=deleted).delete()
+
+        # 태그 데이터 수정
+        tag_ids = CompanyTag.objects.filter(company=company)
+        visited = {tag.id: tag for tag in tag_ids}
+
+        for tag in modified_company_tags:
+            tag_id = tag['id']
+            tag_names = tag['tag_name']
+
+            if tag_id == -1:
+                # 추가
+                new_tag = CompanyTag(company=company)
+                new_tag.save()
+                tag_id = new_tag.id
+                for k, item in tag_names.items():
+                    new_tag_item = CompanyTagItem(
+                        tag=new_tag,
+                        name=item,
+                        language=k
+                    )
+                    new_tag_item.save()
+            else:
+                # 데이터 수정
+                if tag_id not in visited:
+                    raise ValueError()
+                # 태그 내 데이터 순회
+                current_tag_lang_map = \
+                    {item.language: item for item in CompanyTagItem.objects.filter(tag__id=tag_id)}
+
+                for k, new_name in tag_names.items():
+                    if k not in current_tag_lang_map:
+                        # 새로 언어를 추가한다.
+                        new_tag_item = CompanyTagItem(tag=CompanyTag.objects.get(id=tag_id), language=k, name=new_name)
+                        new_tag_item.save()
+                    else:
+                        if current_tag_lang_map[k].name != new_name:
+                            current_tag_lang_map[k].name = new_name
+                            current_tag_lang_map[k].save()
+                        del current_tag_lang_map[k]
+
+                # 남아있는 데이터는 전부 삭제 대상이다.
+                if len(deleted := list(current_tag_lang_map.keys())) > 0:
+                    CompanyTagItem.objects.filter(tag__id=tag_id).filter(language__in=deleted).delete()
+
+            # 작업 후 Company Tag에 대한 TagItem이 하나도 없는 경우
+            cnt = CompanyTagItem.objects.filter(tag__id=tag_id).count()
+            if cnt == 0:
+                CompanyTag.objects.get(id=tag_id).delete()
+
+        # 수정된 데이터 수집
+
+        res = {
+            'company_name': CompanyName.objects.filter(company__id=company.id).get(language=lang).name,
+            'tags': [
+                item.name for item in
+                CompanyTagItem.objects.filter(
+                    tag__in=CompanyTag.objects.filter(company=company)
+                ).filter(language=lang)
+            ],
+        }
+
+        return res
+
+
 class CompanyQueryCreator(QueryCreator):
     # 회사 생성
 
@@ -80,32 +183,6 @@ class CompanyQueryCreator(QueryCreator):
         :param tags: 테그 데이터들
 
         :return: 생성 결과(언어에 따른 출력)
-        """
-
-        """
-        Input Formats
-        compnay_names = {
-            "<lang>": "<name>",
-            "<lang>": "<name>",
-            ...
-        }
-        tags = [
-            {
-                "tag_name": {
-                    "<lang>": "<name>",
-                    "<lang>": "<name>",
-                    ...
-                }
-            }
-        ]
-        ...
-        
-        Output Format
-        lang에 따라야 함 
-        {
-            "company_name": "<name>",
-            "tags": ["<tag1>", "<tag2>", ...]
-        }
         """
 
         res = {
@@ -194,7 +271,7 @@ class CompanyQueryDestoryer(QueryDestroyer):
         Admin은 다른 사람의 회사를 삭제할 수 있지만
         CompanyClient는 자신이 만든 회사만 삭제할 수 있다.
         """
-        is_available =              \
+        is_available = \
             AdminOnly(user_level) | \
             (CompanyOnly(user_level) & SameUserOnly(user_email, company_user_email))
 
@@ -209,4 +286,5 @@ class CompanyQuery(QueryCRUDS):
     reader = CompanyQueryReader()
     creator = CompanyQueryCreator()
     searcher = CompanyQuerySearcher()
+    updator = CompanyQueryUpdator()
     destroyer = CompanyQueryDestoryer()

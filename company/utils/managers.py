@@ -10,6 +10,7 @@ from core.miniframework_on_django.system_layer.jwt.jwt import read_jwt
 from user.models import User
 
 
+# noinspection PyMethodMayBeStatic
 class CompanyManager(CRUDManager):
     cruds_query = CompanyQuery()
 
@@ -99,5 +100,20 @@ class CompanyManager(CRUDManager):
                       removed_company=company_name,
                       lang=lang)
 
-    def update_company(self, company_name, lang, access_token, *args, **kwargs):
-        raise NotImplemented()
+    def update_company(self, company_name, tags, lang, access_token, target_company):
+
+        # 토큰 데이터 추출
+        issue, email = read_jwt(access_token, 'wanted-company-searcher')
+        user: User = User.objects.get(email=email)
+        user_lv = USER_LEVEL_MAP[user.level]
+
+        is_available = (CompanyOnly(user_lv) | AdminOnly(user_lv)) & LoginOnly(issue)
+        if not bool(is_available):
+            raise PermissionError('Permission Failed')
+
+        return self._update(
+            modified_company_names=company_name,
+            modified_company_tags=tags,
+            lang=lang,
+            target_company_name=target_company,
+        )

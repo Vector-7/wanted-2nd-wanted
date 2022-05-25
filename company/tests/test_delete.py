@@ -1,13 +1,9 @@
 import json
-import csv
-import os
-
 from rest_framework import status
 from rest_framework.test import APITestCase
 
 from access.utils.managers.backend_managers import LoginManager
 from user.utils.queries import UserQuery
-from company.utils.queries import CompanyQuery
 from user.models import User
 
 user1 = None
