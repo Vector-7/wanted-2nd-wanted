@@ -16,9 +16,6 @@ class CompanyCreateView(APIView):
     """
 
     def post(self, request):
-        """
-        아직 완성 X
-        """
         req_data = literal_eval(request.body.decode('utf-8'))
         try:
             res = CompanyManager()  \
@@ -50,19 +47,21 @@ class CompanyView(APIView):
     (DELETE)/api/companies/<company_name:str>   회사 삭제 (Not Implemented)
     """
     def get(self, request, company_name):
-        """
-        아직 완성 X
-        """
         try:
             res = CompanyManager()  \
-                .get_company_info(company_name=company_name, lang=request.headers['X-Wanted-Language'])
+                .get_company_info(company_name=company_name,
+                                  lang=request.headers['X-Wanted-Language'])
         except KeyError:
             return Response({'error': '언어가 설정되지 않았습니다.'},
                             status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'error': 'server error'},
                             status.HTTP_500_INTERNAL_SERVER_ERROR)
-        return Response(res, status.HTTP_201_CREATED)
+
+        if not res:
+            return Response({'error': '해당 회사를 찾을 수 없습니다.'},
+                            status.HTTP_404_NOT_FOUND)
+        return Response(res, status.HTTP_200_OK)
 
 
 class CompanySearchView(APIView):

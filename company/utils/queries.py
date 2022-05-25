@@ -2,7 +2,7 @@ from typing import Dict, Optional, List
 
 from django.db import transaction
 
-from company.models import Company
+from company.models import Company, CompanyName, CompanyTag
 from company.serializers import CompanyNameSerializer, CompanyTagSerializer
 from core.miniframework_on_django.query_layer.data_query.query_cruds import QueryCRUDS
 from core.miniframework_on_django.query_layer.data_query.query_methods import QueryReader, QueryCreator
@@ -10,13 +10,46 @@ from user.models import User
 
 
 class CompanyQueryReader(QueryReader):
-    def __call__(self, company_name, x_wanted_language, tags=None):
-        pass
+
+    def __call__(self,
+                 company_name,
+                 lang=None):
+
+        companies = CompanyName.objects.filter(name=company_name).values('company')
+
+        if len(companies) == 0:
+            return None
+        if not lang:
+            # 언어 고려 X
+            # 맨 첫번 째 부분만 출력한다.
+            company = companies[0].company
+        else:
+            # 언어를 고려한 출력
+
+            # 해당 언어로 검색도된 회사들의 company id, langauge로 다시 검색
+            company_ids = [company['company'] for company in companies]
+            companies = CompanyName.objects \
+                .filter(company__id__in=company_ids) \
+                .filter(language=lang).values('company', 'name')
+            
+            # 정보 없음
+            if len(companies) == 0:
+                return None
+            # 가장 맨 위에 있는 데이터를 선택
+            company = companies[0]
+
+        # 검색 대상 회사를 이용해 태그 검색
+        res = {'company_name': company['name'], 'tags': []}
+        tags = CompanyTag.objects \
+            .filter(company__id=company['company']) \
+            .filter(language=lang).values('name')
+        res['tags'] = [tag['name'] for tag in tags]
+        return res
 
 
 class CompanyQueryCreator(QueryCreator):
 
-    @transaction.atomic()
+    @transaction.atomic()  # 트랜잭션 적용
     def __call__(self,
                  user: User,
                  company_names: Dict[str, str],

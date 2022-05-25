@@ -48,13 +48,14 @@ class CompanyManager(CRUDManager):
     def get_company_info(self, company_name, lang):
         """
         회사 관련 내용 검색
-
-        Not Implemented
         """
-        return self._read(company_name=company_name,
-                          lang=lang)
+        """
+        해당 함수에 대한 쿼리 로직은 해당 경로에 있습니다.
+        company/utils/queries.py
+        """
+        return self._read(company_name=company_name, lang=lang)
 
-    def _search_company_by_contain_word(self, tags, lang):
+    def search_company_by_contain_word(self, tags, lang):
         """
         연관검색어를 이용한 검색
 
@@ -62,12 +63,3 @@ class CompanyManager(CRUDManager):
         """
         return self._search(tags=tags,
                             lang=lang)
-
-    def _search_company_by_tags(self, tags):
-        raise NotImplemented()
-
-    def search_company(self,
-                       lang: str,
-                       word: Optional[str],
-                       tags: Optional[Iterable[str]]):
-        raise NotImplemented()
