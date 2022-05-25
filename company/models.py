@@ -37,14 +37,21 @@ class CompanyName(models.Model):
 
 class CompanyTag(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'company_tag'
+
+
+class CompanyTagItem(models.Model):
+    tag = models.ForeignKey(CompanyTag, on_delete=models.CASCADE)
     language = models.CharField(max_length=10, null=False, blank=False)
     name = models.CharField(max_length=100, null=False, blank=False)
 
     class Meta:
-        db_table = 'company_tag'
+        db_table = 'company_tag_item'
         constraints = [
             models.UniqueConstraint(
-                fields=('company', 'language', 'name'),
+                fields=('tag', 'language', 'name'),
                 name='company_tag_unique',
             ),
         ]

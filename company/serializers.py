@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from company.models import CompanyName, CompanyTag
+from company.models import CompanyName, CompanyTagItem
 
 
 class CompanyNameSerializer(serializers.ModelSerializer):
@@ -9,7 +9,7 @@ class CompanyNameSerializer(serializers.ModelSerializer):
         model = CompanyName
 
 
-class CompanyTagSerializer(serializers.ModelSerializer):
+class CompanyTagItemSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
-        model = CompanyTag
+        model = CompanyTagItem

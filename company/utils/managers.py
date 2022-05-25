@@ -1,5 +1,3 @@
-from typing import Optional, Iterable
-
 from access.utils.permissions import (
     CompanyClientPermissionChecker as CompanyOnly,
     LoginPermissionChecker as LoginOnly,
@@ -23,7 +21,7 @@ class CompanyManager(CRUDManager):
         토큰 만료: TokenExpiredError
         권한이 안됨: PermissionError
         알수 없는 에러: exception
-        유저 생성 실패: sereializers.V
+        유저 생성 실패: serializers.ValidationError
         """
 
         # 토큰 데이터 추출

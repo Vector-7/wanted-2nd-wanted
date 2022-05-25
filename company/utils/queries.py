@@ -3,8 +3,8 @@ from typing import Dict, Optional, List
 from django.db import transaction
 from django.db.models import Q
 
-from company.models import Company, CompanyName, CompanyTag
-from company.serializers import CompanyNameSerializer, CompanyTagSerializer
+from company.models import Company, CompanyName, CompanyTag, CompanyTagItem
+from company.serializers import CompanyNameSerializer, CompanyTagItemSerializer
 from core.miniframework_on_django.query_layer.data_query.query_cruds import QueryCRUDS
 from core.miniframework_on_django.query_layer.data_query.query_methods import (
     QueryReader,
@@ -14,15 +14,14 @@ from core.miniframework_on_django.query_layer.data_query.query_methods import (
 )
 from access.utils.permissions import (
     CompanyClientPermissionChecker as CompanyOnly,
-    LoginPermissionChecker as LoginOnly,
     AdminPermissionChecker as AdminOnly,
-    USER_LEVEL_MAP
 )
 from core.miniframework_on_django.query_layer.access_query.permission import \
     PermissionSameUserChecker as SameUserOnly
 from user.models import User
 
 
+# noinspection PyUnresolvedReferences
 class CompanyQueryReader(QueryReader):
     # 회사 정보 읽기
 
@@ -55,9 +54,8 @@ class CompanyQueryReader(QueryReader):
 
         # 검색 대상 회사를 이용해 태그 검색
         res = {'company_name': company['name'], 'tags': []}
-        tags = CompanyTag.objects \
-            .filter(company__id=company['company']) \
-            .filter(language=lang).values('name')
+        tag_ids = [tag.id for tag in CompanyTag.objects.filter(company__id=company['company'])]
+        tags = CompanyTagItem.objects.filter(tag__in=tag_ids).filter(language=lang).values('name')
         res['tags'] = [tag['name'] for tag in tags]
         return res
 
@@ -146,13 +144,18 @@ class CompanyQueryCreator(QueryCreator):
             for tag_shield in tags:
                 if 'tag_name' not in tag_shield:
                     continue
+
+                # 태그 생성
+                tag = CompanyTag(company=company)
+                tag.save()
+
                 for l, t in tag_shield['tag_name'].items():
                     req = {
-                        'company': company.id,
+                        'tag': tag.id,
                         'name': t,
                         'language': l,
                     }
-                    cts = CompanyTagSerializer(data=req)
+                    cts = CompanyTagItemSerializer(data=req)
                     cts.is_valid(raise_exception=True)
                     cts.save()
                     if req['language'] == lang:

@@ -10,6 +10,7 @@ from company.utils.managers import CompanyManager
 from core.miniframework_on_django.exc import TokenExpiredError
 
 
+# noinspection PyMethodMayBeStatic,PyBroadException,SpellCheckingInspection
 class CompanyCreateView(APIView):
     """
     (POST)  /api/company    회사 생성
@@ -34,12 +35,13 @@ class CompanyCreateView(APIView):
         except (serializers.ValidationError, django.db.utils.IntegrityError) as e:
             return Response(str(e),
                             status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
+        except Exception:
             return Response({'error': 'server error'},
                             status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(res, status.HTTP_201_CREATED)
 
 
+# noinspection PyMethodMayBeStatic,SpellCheckingInspection,PyBroadException
 class CompanyView(APIView):
     """
     (GET)   /api/companies/<company_name:str>   회사 검색
@@ -55,7 +57,7 @@ class CompanyView(APIView):
         except KeyError:
             return Response({'error': '언어가 설정되지 않았습니다.'},
                             status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
+        except Exception:
             return Response({'error': 'server error'},
                             status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -81,12 +83,13 @@ class CompanyView(APIView):
         except ValueError:
             return Response({'error': '삭제하고자 하는 회사가 없습니다.'},
                             status.HTTP_404_NOT_FOUND)
-        except Exception as e:
+        except Exception:
             return Response({'error': 'server error'},
                             status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+# noinspection PyMethodMayBeStatic,PyBroadException,SpellCheckingInspection
 class CompanySearchView(APIView):
     """
     (GET)   /api/search/companies   검색
@@ -105,7 +108,7 @@ class CompanySearchView(APIView):
         except KeyError:
             return Response({'error': '언어가 설정되지 않았습니다.'},
                             status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
+        except Exception:
             return Response({'error': 'server error'},
                             status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(res, status.HTTP_200_OK)
