@@ -1,6 +1,10 @@
 from typing import Optional
 
-from access.utils.managers.backend_managers import SignUpAuthenticationManager, LoginManager
+from access.utils.managers.backend_managers import (
+    SignUpAuthenticationManager,
+    LoginManager,
+    FindingPasswordAuthenticateManager
+)
 from core.miniframework_on_django.exc import TokenExpiredError
 from core.miniframework_on_django.manager_layer.manager import BaseManager
 from core.miniframework_on_django.manager_layer.manager_layer import FrontendManagerLayer
@@ -19,17 +23,31 @@ class AuthenticationRemoteManager(BaseManager,
                                   FrontendManagerLayer):
     signup_manager = SignUpAuthenticationManager()
 
-    def request_email_auth_code(self, email: Optional[str]):
+    def _request_email_auth_code_for_signup(self, email: Optional[str]):
         if not email:
             raise TypeError('data is not exists')
-
         if UserQuery().read(email=email):
             raise ValueError('user already exists')
-
         SignUpAuthenticationManager().request_code(email)
 
-    def request_token_for_sign_up(self, req_data):
-        code, email = req_data['code'], req_data['email']
+    def _request_email_auth_code_for_finding_password(self, email: Optional[str]):
+        if not email:
+            raise TypeError('data not exists')
+        if not UserQuery().read(email=email):
+            raise ValueError('user not exists')
+        FindingPasswordAuthenticateManager().request_code(email)
+
+    def request_auth_code(self, email: Optional[str], issue: Optional[str]):
+        if not issue:
+            raise PermissionError('issue failed')
+        if issue == 'sign-up':
+            self._request_email_auth_code_for_signup(email)
+        elif issue == 'finding-password':
+            self._request_email_auth_code_for_finding_password(email)
+        else:
+            raise PermissionError('issue failed')
+
+    def _request_token_for_sign_up(self, email, code):
 
         try:
             is_matched = SignUpAuthenticationManager() \
@@ -43,6 +61,30 @@ class AuthenticationRemoteManager(BaseManager,
             return ValueError('token not matched')
 
         return SignUpAuthenticationManager().auth(email)
+
+    def _request_token_for_finding_password(self, email, code):
+
+        try:
+            is_matched = FindingPasswordAuthenticateManager() \
+                .match_code(code, email)
+        except ValueError:
+            raise TokenExpiredError('token expired')
+        except Exception as e:
+            raise e
+        if not is_matched:
+            return ValueError('token not matched')
+
+        return FindingPasswordAuthenticateManager().auth(email)
+
+    def request_token_for_certaion_issue(self, email, code, issue):
+        if issue == 'sign-up':
+            # 로그인
+            return self._request_token_for_sign_up(email, code)
+        elif issue == 'finding-password':
+            # 패스워드 찾기
+            return self._request_token_for_finding_password(email, code)
+        else:
+            raise PermissionError()
 
     def request_sign_up(self, nickname, email, password, level, access_token):
 

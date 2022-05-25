@@ -19,35 +19,44 @@ class CertificateView(APIView):
     def get(self, request: Request):
         """
         GET-param: email
+        GET-param: issue (sign-up, finding-password)
         """
         try:
             AuthenticationRemoteManager() \
-                .request_email_auth_code(request.GET.get('email', None))
-        except TypeError as e:
+                .request_auth_code(email=request.GET.get('email', None),
+                                   issue=request.GET.get('issue', None))
+        except TypeError:
             return Response({'error': '이메일을 입력하세요'},
                             status.HTTP_400_BAD_REQUEST)
         except ValueError:
             return Response({'error': '이미 계정이 있는 이메일 입니다.'},
                             status.HTTP_400_BAD_REQUEST)
+        except PermissionError:
+            return Response({'error': '접근할 수 없는 API 입니다.'},
+                            status.HTTP_403_FORBIDDEN)
         except Exception as e:
+            print(e)
             return Response({'error': 'server error'},
                             status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(status=status.HTTP_200_OK)
 
     def post(self, request):
         """
+        토큰 발행 (회원 가입, 패스워드 찾기)
+
         post-param
         {
             "email": <str:email>,
-            "code": <str:code>
+            "code": <str:code>,
+            "issue": "sign-up" or "finding-password"
         }
         """
         # POST 데이터 파싱
         req_data = literal_eval(request.body.decode('utf-8'))
         # 인증코드 매칭 확인
         try:
-            token = AuthenticationRemoteManager() \
-                .request_token_for_sign_up(req_data)
+            token = AuthenticationRemoteManager()   \
+                .request_token_for_certaion_issue(**req_data)
         except TokenExpiredError:
             return Response({'error': '인증 코드가 만료되었습니다.'},
                             status.HTTP_400_BAD_REQUEST)

@@ -67,6 +67,40 @@ class UserCreateView(APIView):
                             status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    def patch(self, request):
+        """
+        input form = {
+            "nickname": "<new nickname>".
+            "password": "<password>",
+            "issue": "change-info",
+            "
+        }
+        """
+        try:
+            req_data = literal_eval(request.body.decode('utf-8'))
+            res = UserManager().update_user(**req_data,
+                                            access_token=request.headers['Access'])
+        except KeyError:
+            return Response({'error': '접근할 수 없는 API 입니다.'},
+                            status.HTTP_403_FORBIDDEN)
+        except ValueError:
+            return Response({'error': '알 수 없는 접근 입니다.'},
+                            status.HTTP_400_BAD_REQUEST)
+        except User.DoesNotExist:
+            return Response({'error': '없는 계정 입니다.'},
+                            status.HTTP_404_NOT_FOUND)
+        except (PermissionError, jwt.exceptions.DecodeError):
+            return Response({'error': '유호한 토큰이 아닙니다.'},
+                            status.HTTP_403_FORBIDDEN)
+        except PasswordMatchFailedError:
+            return Response({'error': '패스워드가 일치하지 않습니다.'},
+                            status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(e)
+            return Response({'error': 'server error'},
+                            status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(res, status=status.HTTP_200_OK)
+
 
 class UserView(APIView):
     """

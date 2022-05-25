@@ -10,7 +10,7 @@ from core.miniframework_on_django.tools.password import match_password
 from access.utils.permissions import USER_LEVEL_MAP
 
 
-class PasswordMatchFailedError(ValueError):
+class PasswordMatchFailedError(Exception):
     pass
 
 
@@ -38,3 +38,29 @@ class UserManager(CRUDManager):
 
         # 유저 삭제
         self._destroy(email=email)
+
+    def _update_user(self, access_token, nickname=None, password=None):
+
+        # 토큰 데이터 추출
+        issue, email = read_jwt(access_token, 'wanted-company-searcher')
+
+        # 로그인 상태여야 한다.
+        is_available = LoginOnly(issue)
+        is_available.check()
+        if not bool(is_available):
+            raise PermissionError('Permission Error')
+
+        return self._update(target_email=email,
+                            password=password,
+                            nickname=nickname)
+
+    def _fiding_password(self, password, access_token):
+        pass
+
+    def update_user(self, nickname, password, issue, access_token):
+        if issue == 'change':
+            return self._update_user(access_token, nickname, password)
+        elif issue == 'finding-password':
+            return self._fiding_password(password, access_token)
+        else:
+            raise ValueError()

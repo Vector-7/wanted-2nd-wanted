@@ -5,6 +5,7 @@ from core.miniframework_on_django.query_layer.data_query.query_methods import (
     QueryReader,
     QueryCreator,
     QueryDestroyer,
+    QueryUpdator
 )
 from user.models import User
 from user.serializers import UserSerializer
@@ -58,7 +59,34 @@ class UserQueryDestroyer(QueryDestroyer):
             raise ValueError('No Data Selected')
 
 
+class UserQueryUpdator(QueryUpdator):
+    def __call__(self,
+                 target_email: Optional[str] = None,
+                 target_nickname: Optional[str] = None,
+
+                 password: Optional[str] = None,
+                 nickname: Optional[str] = None):
+        user: User = None
+        if target_email:
+            user = User.objects.get(email=target_email)
+        elif target_nickname:
+            user = User.objects.get(nickname=target_nickname)
+        else:
+            raise ValueError('target user data is nothing')
+        req = dict()
+        if password:
+            req['password'] = password
+        if nickname:
+            req['nickname'] = nickname
+        user_serializer = UserSerializer(user, data=req, partial=True)
+        user_serializer.is_valid(raise_exception=True)
+        user_serializer.save()
+
+        return {'result': 'ok'}
+
+
 class UserQuery(QueryCRUDS):
     reader = UserQueryReader()
     creator = UserQueryCreator()
     destroyer = UserQueryDestroyer()
+    updator = UserQueryUpdator()

@@ -6,17 +6,14 @@ from core.miniframework_on_django.query_layer.access_query.authenticator import 
     AuthenticateCodeChecker, AuthenticateTokenGenerator
 
 
-class SignUpAuthenticateCodeSender(AuthenticateCodeSender):
-    """
-    회원 가입용 인증코드 발송
-    """
+class FindingPasswordAuthenticateCodeSender(AuthenticateCodeSender):
     ttl = 3
 
     def generate_code(self, *args, **kwargs) -> str:
         return str(random.randint(100000, 999999))
 
     def save_code(self, audience, auth_code):
-        key = f'email_certificate:signup:{audience}'
+        key = f'email_certificate:finding_password:{audience}'
         value = {
             'code': auth_code
         }
@@ -34,12 +31,13 @@ class SignUpAuthenticateCodeSender(AuthenticateCodeSender):
         email.send()
 
 
-class SignUpAuthenticateCodeChecker(AuthenticateCodeChecker):
+class FindingPasswordAuthenticateCodeChecker(AuthenticateCodeChecker):
     """
-    회원 가입 인증 체크
+    패스워드 찾기 관련 인증 체크
     """
+
     def match(self, code: str, email: str) -> bool:
-        key = f'email_certificate:signup:{email}'
+        key = f'email_certificate:finding_password:{email}'
 
         # 데이터 가져오기
         auth_data = cache.get(key)
@@ -52,10 +50,10 @@ class SignUpAuthenticateCodeChecker(AuthenticateCodeChecker):
         return code == auth_data['code']
 
 
-class SignUpAuthenticateTokenGenerator(AuthenticateTokenGenerator):
+class FindingPasswordAuthenticateTokenGenerator(AuthenticateTokenGenerator):
     """
-    회원 가입 시, 유저 생성을 위해 필요한 토큰 생성기
+    패스워드 찾기 시 토큰 생성
     """
     app_name = 'wanted-company-searcher'
-    issue = 'sign-up'
+    issue = 'finding-password'
     expire_len = 5
