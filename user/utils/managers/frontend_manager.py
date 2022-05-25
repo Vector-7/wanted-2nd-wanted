@@ -4,6 +4,7 @@ from core.miniframework_on_django.manager_layer.manager import CRUDManager
 from user.utils.queries import UserQuery
 from access.utils.permissions import (
     LoginPermissionChecker as LoginOnly,
+    FindingPasswordPermissionChecker as ForFindingPswdOnly,
 )
 from core.miniframework_on_django.system_layer.jwt.jwt import read_jwt
 from core.miniframework_on_django.tools.password import match_password
@@ -55,9 +56,20 @@ class UserManager(CRUDManager):
                             nickname=nickname)
 
     def _fiding_password(self, password, access_token):
-        pass
 
-    def update_user(self, nickname, password, issue, access_token):
+        # 토큰 데이터 추출
+        issue, email = read_jwt(access_token, 'wanted-company-searcher')
+
+        # 목적이 패스워드를 잊었을 경우만 해당 기능을 사용할 수 있다.
+        is_available = ForFindingPswdOnly(issue)
+        is_available.check()
+        if not bool(is_available):
+            raise PermissionError('Permission Error')
+
+        return self._update(target_email=email,
+                            password=password)
+
+    def update_user(self, issue, access_token, nickname=None, password=None):
         if issue == 'change':
             return self._update_user(access_token, nickname, password)
         elif issue == 'finding-password':

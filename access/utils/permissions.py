@@ -10,6 +10,10 @@ class LoginPermissionChecker(PermissionIssueChecker):
     issue = 'login'
 
 
+class FindingPasswordPermissionChecker(PermissionIssueChecker):
+    issue = 'finding-password'
+
+
 class CompanyClientPermissionChecker(PermissionLevelChecker):
     level = 'company_client'
 
