@@ -140,16 +140,21 @@ In-Memory Database, 즉 캐시 시스템 입니다. 해당 시스템의 사용 �
 자동으로 만료가 됩니다.
 
 
+## Code Sitemap
+* Views
+  * [Access(인증)](access/views.py)
+  * [User](user/views.py)
+  * [Company](company/views.py)
+* Models
+  * [User](user/models.py)
+  * [Company](company/models.py)
+* Queries
+  * [User](user/utils/queries.py)
+  * [Company](company/utils/queries.py)
+
 ## DB Models
-<details>
-<summary>ERD 보기</summary>
-<div>
 
 ![](readme-assets/DatabaseDiagram.png)
-
-</div>
-</details>
-
 
 ## miniframework_on_django
 
@@ -176,14 +181,8 @@ In-Memory Database, 즉 캐시 시스템 입니다. 해당 시스템의 사용 �
   * 모든 기능 객체들이 아키텍처에 의존하고 있다 즉, 뼈대 자체가 문제가 생겼기 때문에 상당 부분의 로직을 수정해야 하며 심할 경우, 코드를 갈아엎어야 할 수 있습니다.
 
 ### Class Diagram
-<details>
-<summary>다이어그램 보기</summary>
-<div>
 
 ![](readme-assets/uml.png)
-
-</div>
-</details>
 
 ### 설계/구현 전략
 #### 객체 지향 5대 원칙 (SOLID)
