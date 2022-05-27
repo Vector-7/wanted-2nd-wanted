@@ -12,6 +12,9 @@ from user.serializers import UserSerializer
 
 
 class UserQueryReader(QueryReader):
+    """
+    유저 정보 읽기
+    """
 
     def __call__(self,
                  email: Optional[str] = None,
@@ -28,6 +31,9 @@ class UserQueryReader(QueryReader):
 
 
 class UserQueryCreator(QueryCreator):
+    """
+    유저 생성
+    """
 
     def __call__(self, email: str, password: str, level: str, nickname: str):
         req = {
@@ -48,6 +54,9 @@ class UserQueryCreator(QueryCreator):
 
 
 class UserQueryDestroyer(QueryDestroyer):
+    """
+    유저 삭제
+    """
     def __call__(self,
                  user_name: Optional[str] = None,
                  email: Optional[str] = None):
@@ -60,6 +69,11 @@ class UserQueryDestroyer(QueryDestroyer):
 
 
 class UserQueryUpdator(QueryUpdator):
+    """
+    유저 정보 변경
+    
+    패스워드/닉네임만 변경 가능
+    """
     def __call__(self,
                  target_email: Optional[str] = None,
                  target_nickname: Optional[str] = None,

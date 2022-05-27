@@ -34,11 +34,7 @@ class CompanyManager(CRUDManager):
         if not bool(CompanyOnly(user_lv) & LoginOnly(issue)):
             raise PermissionError('Permission Failed')
 
-        """
-        생성
-        해당 함수에 대한 쿼리 로직은 해당 경로에 있습니다.
-        company/utils/queries.py
-        """
+        # 생성
         return self._create(
             company_names=company_name,
             tags=tags,
@@ -58,12 +54,6 @@ class CompanyManager(CRUDManager):
     def search_company_by_contain_word(self, word, lang):
         """
         연관검색어를 이용한 검색
-
-        Not Implemented
-        """
-        """
-        해당 함수에 대한 쿼리 로직은 해당 경로에 있습니다.
-        company/utils/queries.py
         """
         return self._search(word=word,
                             lang=lang)

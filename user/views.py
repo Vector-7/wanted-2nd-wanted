@@ -18,7 +18,6 @@ from user.models import User
 class UserCreateView(APIView):
     """
     (POST)      /api/users  회원 가입
-    (GET)       /api/users  회원 정보 가져오기
     (PATCH)     /api/users  회원 정보 수정
     (DELETE)    /api/usrs   회원 정보 삭제
     """

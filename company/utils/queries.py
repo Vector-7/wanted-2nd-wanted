@@ -1,4 +1,4 @@
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Any
 
 from django.db import transaction
 from django.db.models import Q
@@ -28,7 +28,12 @@ class CompanyQueryReader(QueryReader):
     def __call__(self,
                  company_name,
                  lang=None):
-
+        """
+        :param company_name: 회사 이름
+        :param lang: 출력 언어, 없으면 고려하지 않는다.
+        """
+        
+        # 이름으로 회사 이름 찾기
         companies = CompanyName.objects.filter(name=company_name).values('company')
 
         if len(companies) == 0:
@@ -40,7 +45,7 @@ class CompanyQueryReader(QueryReader):
         else:
             # 언어를 고려한 출력
 
-            # 해당 언어로 검색도된 회사들의 company id, langauge로 다시 검색
+            # 해당 언어로 검색된 회사들의 company id, langauge로 다시 검색
             company_ids = [company['company'] for company in companies]
             companies = CompanyName.objects \
                 .filter(company__id__in=company_ids) \
@@ -64,23 +69,37 @@ class CompanyQueryUpdator(QueryUpdator):
 
     @transaction.atomic()
     def __call__(self,
-                 modified_company_names,
-                 modified_company_tags,
+                 modified_company_names: Dict[str, str],
+                 modified_company_tags: List[Dict[str, Any]],
                  lang,
                  target_company_name):
+        
+        """
+        :param modified_company_tags: 새로 업데이트 할 태그들
+        :param modified_company_names: 새로 업데이트 할 이름
+        :param lang: 언어 이름
+        :param target_company_name: 변경 대상 회사 이름
+        """
 
         # 회사 검색
         global res
         q = Q(name=target_company_name) & Q(language=lang)
         try:
             company = CompanyName.objects.get(q).company
-            company_id = company.id
+            company_id = company.id # 회사 고유 아이디
         except CompanyName.DoesNotExist:
             raise ValueError('No Compnay searched')
-        # 이름 변경
+
+        # 해당 회사에 대한 여러 이름들 저장
         company_names: List[CompanyName] = CompanyName.objects.filter(company=company_id)
+        # 저장된 이름을 언어를 key로 잡고 Dictionary화
         lang_map: Dict[str, CompanyName] = {cn.language: cn for cn in company_names}
 
+        """
+        이름 수정
+        k -> 언어
+        name -> 이름
+        """
         for k, name in modified_company_names.items():
             # 이름 수정
             if k in lang_map:
@@ -109,7 +128,11 @@ class CompanyQueryUpdator(QueryUpdator):
             tag_names = tag['tag_name']
 
             if tag_id == -1:
-                # 추가
+                """
+                입력 받은 태그 아이템 중 id가 -1이면
+                해당 회사에 태그를 추가하겠다는 의미다
+                이때 동일한 태그가 있으면 에러를 호출한다.
+                """
                 new_tag = CompanyTag(company=company)
                 new_tag.save()
                 tag_id = new_tag.id
@@ -171,11 +194,7 @@ class CompanyQueryCreator(QueryCreator):
                  user: User,
                  company_names: Dict[str, str],
                  lang: str,
-                 tags: Optional[
-                     List[
-                         Dict[str, Dict[str, str]]
-                     ]
-                 ]):
+                 tags: Optional[List[Dict[str, Dict[str, str]]]]):
         """
         :param user: 회사 데이터를 생성 할 User
         :param company_names: 회사 이름들
