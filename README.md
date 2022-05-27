@@ -299,9 +299,3 @@ class AuthenticateCodePlugin(metaclass=ABCMeta):
         return self.checker.match(*args, **kwargs)
 ```
 
-#### 사용된 디자인 패턴
-(리팩토링 진행 시 적용 예정)
-#### 메모리/성능 관리
-(리팩토링 진행 시 적용 예정)
-
-
