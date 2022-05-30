@@ -8,9 +8,6 @@
     <img align="top" src="https://img.shields.io/badge/JWT-000000?style=flat-square&logo=JSON%20web%20tokens&logoColor=white"/>
 </div>
 
-> ⚠️ 현재 프로젝트는  DJango와 자체 설계된 Architecture 위에 구현이 진행되고 있습니다. 아직 구현 초기에 Architecture 마저 
-> 리펙토링을 수행하지 않았으므로 코드 컨벤션이 심각하게 난잡한 상태 입니다.
-
 ## 개요
 
 회사 데이터를 생성하고 언어에 따른 회사 검색을 수행합니다.
